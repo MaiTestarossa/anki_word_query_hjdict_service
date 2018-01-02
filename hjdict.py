@@ -2,6 +2,7 @@
 import re
 import urllib2
 import urllib
+import types
 import xml.etree.ElementTree
 from bs4.BeautifulSoup import BeautifulSoup
 import ssl
@@ -51,6 +52,11 @@ class hjdict(WebService):
 
         #变量大小写规范不管了，之前抄不知道日本人还是韩国人的anki weblio爬虫插件，里面有大写就跟着大写了
         NetDicBody = soup.find('div', class_="word-details")
+        if type(NetDicBody) == types.NoneType:
+            errorMsg = '查无此词'
+            return self.cache_this({'expressions': errorMsg, 'Meaning':errorMsg,'phonetic': errorMsg,'mp3':errorMsg,
+              'sentences': errorMsg, 'sentence_trans': errorMsg})
+
         Expression = NetDicBody.find('div', 'word-text').h2.string
         Pronounces = NetDicBody.find('div', 'pronounces').span.string[1:-1]
         mp3 = NetDicBody.find('span', 'word-audio').get('data-src')
