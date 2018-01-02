@@ -56,6 +56,11 @@ class hjdict(WebService):
             errorMsg = '查无此词'
             return self.cache_this({'expressions': errorMsg, 'Meaning':errorMsg,'phonetic': errorMsg,'mp3':errorMsg,
               'sentences': errorMsg, 'sentence_trans': errorMsg})
+        if not isinstance(NetDicBody.find('header', class_='word-details-pane-header-multi'), types.NoneType):
+            errorMsg = '一词多音'
+            return self.cache_this({'expressions': errorMsg, 'Meaning':errorMsg,'phonetic': errorMsg,'mp3':errorMsg,
+              'sentences': errorMsg, 'sentence_trans': errorMsg})
+
 
         Expression = NetDicBody.find('div', 'word-text').h2.string
         Pronounces = NetDicBody.find('div', 'pronounces').span.string[1:-1]
