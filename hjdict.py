@@ -11,23 +11,6 @@ from aqt.utils import showInfo, showText
 from .base import WebService, export, with_styles, register
 from ..utils import ignore_exception
 
-js = '''
-var initVoice = function () {
-    var player = document.getElementById('dictVoice');
-    document.addEventListener('click', function (e) {
-        var target = e.target;
-        if (target.hasAttribute('role') && target.getAttribute('role').indexOf('dict_audio_js') >= 0) {
-            var url = target.getAttribute('data-rel');
-            player.setAttribute('src', url);
-            player.volume = 1;
-            player.play();
-            e.preventDefault();
-        }
-    }, false);
-};
-initVoice();
-'''
-
 
 @register(u'沪江小D')
 class hjdict(WebService):
@@ -54,12 +37,12 @@ class hjdict(WebService):
         NetDicBody = soup.find('div', class_="word-details")
         if type(NetDicBody) == types.NoneType:
             errorMsg = '查无此词'
-            return self.cache_this({'expressions': errorMsg, 'Meaning':errorMsg,'phonetic': errorMsg,'mp3':errorMsg,
-              'sentences': errorMsg, 'sentence_trans': errorMsg})
+            return self.cache_this({'expressions': '', 'Meaning':'','phonetic': '','mp3':'',
+              'sentences': '', 'sentence_trans': '', 'status': errorMsg})
         if not isinstance(NetDicBody.find('header', class_='word-details-pane-header-multi'), types.NoneType):
-            errorMsg = '一词多音'
-            return self.cache_this({'expressions': errorMsg, 'Meaning':errorMsg,'phonetic': errorMsg,'mp3':errorMsg,
-              'sentences': errorMsg, 'sentence_trans': errorMsg})
+            errorMsg = '一词多义'
+            return self.cache_this({'expressions': '', 'Meaning':'','phonetic': '','mp3':'',
+              'sentences': '', 'sentence_trans': '', 'status': errorMsg})
 
 
         Expression = NetDicBody.find('div', 'word-text').h2.string
@@ -74,7 +57,10 @@ class hjdict(WebService):
         for s in range(len(MeaningRawRaw)):
             MeaningRaw = ' '.join(re.split(' +|\n+', MeaningRawRaw[s].get_text())).strip()
             m_temp = ' '.join(MeaningRaw.split())
-            Meaning += Poses[s].get_text() + m_temp + "\n"
+            if len(Poses) < 1:
+                Meaning += m_temp+"\n"
+            else:
+                Meaning += Poses[s].get_text() + m_temp + "\n"
         Meaning = Meaning.rstrip()
         Meaning = Meaning.replace("； ", "")
 
@@ -92,7 +78,7 @@ class hjdict(WebService):
 
         return self.cache_this(
              {'expressions': Expression, 'Meaning':Meaning,'phonetic': Pronounces,'mp3':mp3,
-              'sentences': Sents, 'sentence_trans': sentstrans})
+              'sentences': Sents, 'sentence_trans': sentstrans, 'status': ''})
 
     @export(u'原文', 0)
     def fld_expressions(self):
@@ -130,3 +116,7 @@ class hjdict(WebService):
     @export(u'例句解释', 5)
     def fld_sentence_trans(self):
         return self.cache_result('sentence_trans') if self.cached('sentence_trans') else self._get_content()['sentence_trans']
+    
+    @export(u'状态', 6)
+    def fld_statusmsg(self):
+        return self.cache_result('status') if self.cached('status') else self._get_content()['status']
